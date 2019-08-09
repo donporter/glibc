@@ -1185,6 +1185,9 @@ common-generated += $(version-maps)
 postclean-generated += sysd-versions Versions.all abi-versions.h \
 		       Versions.def Versions.v.i Versions.v Versions.mk
 
+# Add libos for Graphene
+all-subdirs += libos
+
 ifndef avoid-generated
 ifneq ($(sysd-versions-subdirs),$(sorted-subdirs) $(config-sysdirs))
 sysd-versions-force = FORCE
