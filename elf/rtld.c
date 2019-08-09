@@ -456,6 +456,23 @@ _dl_start_final (void *arg, struct dl_start_final_info *info)
   return start_addr;
 }
 
+/* For graphene, check if glibc version match to the compatible SHIM
+   library. If not, tell the user to update glibc. */
+#include "glibc-version.h"
+
+volatile const int glibc_version __attribute__((weak)) = GLIBC_VERSION;
+
+static void __attribute__((noinline,optimize("-O0")))
+check_glibc_version (void)
+{
+  if (glibc_version != GLIBC_VERSION)
+    {
+      _dl_fatal_printf ("Warning from Graphene: "
+                        "Glibc version is incorrect. Please rebuild Glibc.\n");
+      _exit (1);
+    }
+}
+
 static ElfW(Addr) __attribute_used__
 _dl_start (void *arg)
 {
@@ -525,6 +542,9 @@ _dl_start (void *arg)
   /* Please note that we don't allow profiling of this object and
      therefore need not test whether we have to allocate the array
      for the relocation results (as done in dl-reloc.c).  */
+
+  /* For Graphene, check if the glibc version is correct. */
+  check_glibc_version();
 
   /* Now life is sane; we can call functions and access global data.
      Set up to use the operating system facilities, and find out from
