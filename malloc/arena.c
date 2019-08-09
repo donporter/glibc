@@ -26,6 +26,30 @@
 
 /* Compile-time constants.  */
 
+#ifdef ENABLE_LIBOS
+#ifndef HEAP_MAX_SIZE
+# ifdef DEFAULT_MMAP_THRESHOLD_MAX
+#  define DEFAULT_HEAP_MAX_SIZE (2 * DEFAULT_MMAP_THRESHOLD_MAX)
+# else
+#  define DEFAULT_HEAP_MAX_SIZE (1024 * 1024) /* must be a power of two */
+# endif
+# include <sysdep.h>
+extern long int __libos_glibc_option (const char * opt) __attribute__((weak));
+static long int heap_max_size = 0;
+# define HEAP_MAX_SIZE								\
+	({									\
+		if (!heap_max_size) {						\
+			long int size = __libos_glibc_option("heap_size");	\
+			if (size > 0)						\
+				heap_max_size = size;				\
+			else							\
+				heap_max_size = DEFAULT_HEAP_MAX_SIZE;		\
+		}								\
+		heap_max_size;							\
+	})
+#endif
+#endif
+
 #define HEAP_MIN_SIZE (32 * 1024)
 #ifndef HEAP_MAX_SIZE
 # ifdef DEFAULT_MMAP_THRESHOLD_MAX
@@ -470,6 +494,7 @@ new_heap (size_t size, size_t top_pad)
      mapping (on Linux, this is the case for all non-writable mappings
      anyway). */
   p2 = MAP_FAILED;
+#ifndef ENABLE_LIBOS
   if (aligned_heap_area)
     {
       p2 = (char *) MMAP (aligned_heap_area, HEAP_MAX_SIZE, PROT_NONE,
@@ -481,6 +506,7 @@ new_heap (size_t size, size_t top_pad)
           p2 = MAP_FAILED;
         }
     }
+#endif
   if (p2 == MAP_FAILED)
     {
       p1 = (char *) MMAP (0, HEAP_MAX_SIZE << 1, PROT_NONE, MAP_NORESERVE);
@@ -491,8 +517,10 @@ new_heap (size_t size, size_t top_pad)
           ul = p2 - p1;
           if (ul)
             __munmap (p1, ul);
+#ifndef ENABLE_LIBOS
           else
             aligned_heap_area = p2 + HEAP_MAX_SIZE;
+#endif
           __munmap (p2 + HEAP_MAX_SIZE, HEAP_MAX_SIZE - ul);
         }
       else
