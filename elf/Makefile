@@ -34,7 +34,7 @@ dl-routines	= $(addprefix dl-,load lookup object reloc deps hwcaps \
 				  version profile tls origin scope \
 				  execstack open close trampoline \
 				  exception sort-maps) \
-		syscalldb
+		syscalldb syscallas
 ifeq (yes,$(use-ldconfig))
 dl-routines += dl-cache
 endif
