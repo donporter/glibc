@@ -223,6 +223,8 @@ $(inst_includedir)/gnu/stubs.h: $(+force)
 install-others-nosubdir: $(installed-stubs)
 endif
 
+# For Graphene
+CFLAGS-syscalldb.c = -fPIC
 
 # Since stubs.h is never needed when building the library, we simplify the
 # hairy installation process by producing it in place only as the last part
