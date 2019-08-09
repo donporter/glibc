@@ -21,7 +21,8 @@
 
 #include <isa.h>
 
-#if MINIMUM_ISA == 686 || MINIMUM_ISA == 8664
+//#if MINIMUM_ISA == 686 || MINIMUM_ISA == 8664
+#if 0
 /* We indeed have inlined functions.  */
 # define HP_TIMING_INLINE	(1)
 
