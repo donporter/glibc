@@ -1373,6 +1373,9 @@ cannot enable executable stack as shared object requires");
   DL_AFTER_LOAD (l);
 #endif
 
+  /* register the library to SHIM */
+  register_library(l->l_name, l->l_addr);
+
   /* Now that the object is fully initialized add it to the object list.  */
   _dl_add_to_namespace_list (l, nsid);
 

@@ -79,4 +79,7 @@ ld {
     # Set value of a tunable.
     __tunable_get_val;
   }
+  SHIM {
+    register_library;
+  }
 }
