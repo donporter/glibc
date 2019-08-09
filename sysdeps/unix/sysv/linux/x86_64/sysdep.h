@@ -22,6 +22,7 @@
 #include <sysdeps/unix/sysv/linux/sysdep.h>
 #include <sysdeps/unix/x86_64/sysdep.h>
 #include <tls.h>
+#include "syscalldb.h"
 
 /* Defines RTLD_PRIVATE_ERRNO.  */
 #include <dl-sysdep.h>
@@ -176,7 +177,7 @@
 # define DO_CALL(syscall_name, args)		\
     DOARGS_##args				\
     movl $SYS_ify (syscall_name), %eax;		\
-    syscall;
+    SYSCALLDB
 
 # define DOARGS_0 /* nothing */
 # define DOARGS_1 /* nothing */
@@ -190,9 +191,20 @@
 /* Define a macro which expands inline into the wrapper code for a system
    call.  */
 # undef INLINE_SYSCALL
-# define INLINE_SYSCALL(name, nr, args...) \
+# define INLINE_SYSCALL(name, nr_args...) \
   ({									      \
-    unsigned long int resultvar = INTERNAL_SYSCALL (name, , nr, args);	      \
+    unsigned long int resultvar = INTERNAL_SYSCALL (name, , ##nr_args);	      \
+    if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (resultvar, )))	      \
+      {									      \
+	__set_errno (INTERNAL_SYSCALL_ERRNO (resultvar, ));		      \
+	resultvar = (unsigned long int) -1;				      \
+      }									      \
+    (long int) resultvar; })
+
+# undef INLINE_SYSCALL_ASM
+# define INLINE_SYSCALL_ASM(name, nr_args...) \
+  ({									      \
+    unsigned long int resultvar = INTERNAL_SYSCALL_ASM (name, , ##nr_args);   \
     if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (resultvar, )))	      \
       {									      \
 	__set_errno (INTERNAL_SYSCALL_ERRNO (resultvar, ));		      \
@@ -204,9 +216,9 @@
    into the wrapper code for a system call.  It should be used when size
    of any argument > size of long int.  */
 # undef INLINE_SYSCALL_TYPES
-# define INLINE_SYSCALL_TYPES(name, nr, args...) \
+# define INLINE_SYSCALL_TYPES(name, nr_args...) \
   ({									      \
-    unsigned long int resultvar = INTERNAL_SYSCALL_TYPES (name, , nr, args);  \
+    unsigned long int resultvar = INTERNAL_SYSCALL_TYPES (name, , ##nr_args); \
     if (__glibc_unlikely (INTERNAL_SYSCALL_ERROR_P (resultvar, )))	      \
       {									      \
 	__set_errno (INTERNAL_SYSCALL_ERRNO (resultvar, ));		      \
@@ -235,12 +247,19 @@
 #define INTERNAL_SYSCALL_NCS(number, err, nr, args...)			\
 	internal_syscall##nr (number, err, args)
 
+#undef INTERNAL_SYSCALL_ASM
+#define INTERNAL_SYSCALL_ASM(name, err, nr, args...)			\
+	INTERNAL_SYSCALL_NCS_ASM (SYS_ify (name), err, nr, args)
+
+#undef INTERNAL_SYSCALL_NCS_ASM
+#define INTERNAL_SYSCALL_NCS_ASM INTERNAL_SYSCALL_NCS
+
 #undef internal_syscall0
 #define internal_syscall0(number, err, dummy...)			\
 ({									\
     unsigned long int resultvar;					\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number)							\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -254,7 +273,7 @@
     TYPEFY (arg1, __arg1) = ARGIFY (arg1);			 	\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1)						\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -270,7 +289,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2)				\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -288,7 +307,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3)			\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -308,7 +327,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4)		\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -330,7 +349,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4),		\
       "r" (_a5)								\
@@ -355,7 +374,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4),		\
       "r" (_a5), "r" (_a6)						\

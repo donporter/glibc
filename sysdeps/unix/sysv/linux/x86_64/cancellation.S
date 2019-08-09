@@ -98,7 +98,8 @@ ENTRY(__pthread_disable_asynccancel)
 	xorq	%r10, %r10
 	addq	$CANCELHANDLING, %rdi
 	LOAD_PRIVATE_FUTEX_WAIT (%esi)
-	syscall
+	SYSCALLDB
+
 	movl	%fs:CANCELHANDLING, %eax
 	jmp	3b
 END(__pthread_disable_asynccancel)

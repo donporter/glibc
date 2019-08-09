@@ -77,7 +77,7 @@ ENTRY(__swapcontext)
 	movl	$SIG_SETMASK, %edi
 	movl	$_NSIG8,%r10d
 	movl	$__NR_rt_sigprocmask, %eax
-	syscall
+	SYSCALLDB
 	cmpq	$-4095, %rax		/* Check %rax for error.  */
 	jae	SYSCALL_ERROR_LABEL	/* Jump to error handler if error.  */
 
@@ -117,7 +117,7 @@ ENTRY(__swapcontext)
 	mov	%RSP_LP, %RSI_LP
 	movl	$ARCH_CET_STATUS, %edi
 	movl	$__NR_arch_prctl, %eax
-	syscall
+	SYSCALLDB
 	testq	%rax, %rax
 	jz	L(continue_no_err)
 

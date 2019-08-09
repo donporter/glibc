@@ -80,6 +80,6 @@ ld {
     __tunable_get_val;
   }
   SHIM {
-    glibc_version; glibc_option; register_library;
+    syscalldb; glibc_version; glibc_option; register_library;
   }
 }
