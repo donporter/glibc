@@ -77,6 +77,7 @@ typedef struct
   void *__padding[8];
 } tcbhead_t;
 
+#if 0
 # ifdef __ILP32__
 /* morestack.S in libgcc uses offset 0x40 to access __private_ss,   */
 _Static_assert (offsetof (tcbhead_t, __private_ss) == 0x40,
@@ -93,6 +94,7 @@ _Static_assert (offsetof (tcbhead_t, __private_ss) == 0x70,
 _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 		"offset of __glibc_unused2 != 0x80");
 # endif
+#endif
 
 #else /* __ASSEMBLER__ */
 # include <tcb-offsets.h>
