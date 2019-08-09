@@ -26,6 +26,12 @@
 /* Defines RTLD_PRIVATE_ERRNO.  */
 #include <dl-sysdep.h>
 
+#ifdef __ASSEMBLER__
+# define SYSCALLDB syscall
+#else
+# define SYSCALLDB "syscall\n\t"
+#endif
+
 /* For Linux we can use the system call table in the header file
 	/usr/include/asm/unistd.h
    of the kernel.  But these symbols do not follow the SYS_* syntax
@@ -176,7 +182,7 @@
 # define DO_CALL(syscall_name, args)		\
     DOARGS_##args				\
     movl $SYS_ify (syscall_name), %eax;		\
-    syscall;
+    SYSCALLDB
 
 # define DOARGS_0 /* nothing */
 # define DOARGS_1 /* nothing */
@@ -240,7 +246,7 @@
 ({									\
     unsigned long int resultvar;					\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number)							\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -254,7 +260,7 @@
     TYPEFY (arg1, __arg1) = ARGIFY (arg1);			 	\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1)						\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -270,7 +276,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2)				\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -288,7 +294,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3)			\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -308,7 +314,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4)		\
     : "memory", REGISTERS_CLOBBERED_BY_SYSCALL);			\
@@ -330,7 +336,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4),		\
       "r" (_a5)								\
@@ -355,7 +361,7 @@
     register TYPEFY (arg2, _a2) asm ("rsi") = __arg2;			\
     register TYPEFY (arg1, _a1) asm ("rdi") = __arg1;			\
     asm volatile (							\
-    "syscall\n\t"							\
+    SYSCALLDB								\
     : "=a" (resultvar)							\
     : "0" (number), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4),		\
       "r" (_a5), "r" (_a6)						\
