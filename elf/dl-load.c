@@ -72,6 +72,7 @@ struct filebuf
 #include <dl-sysdep-open.h>
 #include <dl-prop.h>
 #include <not-cancel.h>
+#include <libos.h>
 
 #include <endian.h>
 #if BYTE_ORDER == BIG_ENDIAN
@@ -1372,6 +1373,9 @@ cannot enable executable stack as shared object requires");
 #ifdef DL_AFTER_LOAD
   DL_AFTER_LOAD (l);
 #endif
+
+  /* register the library to libos */
+  __libos_register_library(l->l_name, l->l_addr);
 
   /* Now that the object is fully initialized add it to the object list.  */
   _dl_add_to_namespace_list (l, nsid);
