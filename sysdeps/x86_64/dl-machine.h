@@ -578,7 +578,8 @@ elf_machine_lazy_rel (struct link_map *map,
 	value = ((ElfW(Addr) (*) (void)) value) ();
       *reloc_addr = value;
     }
-  else
+  /* for graphene, get around R_X86_64_NONE */
+  else if (__builtin_expect (r_type != R_X86_64_NONE, 1))
     _dl_reloc_bad_type (map, r_type, 1);
 }
 
