@@ -30,6 +30,7 @@
 # include <kernel-features.h>
 # include <dl-dtv.h>
 # include <syscalldb.h>
+# include <shim_tls.h>
 
 /* Replacement type for __m128 since this file is included by ld.so,
    which is compiled with -mno-sse.  It must not change the alignment
@@ -56,7 +57,13 @@ typedef struct
      Bit 1: X86_FEATURE_1_SHSTK.
    */
   unsigned int feature_1;
+#if 0 // make offset to shim_tcb same to other version
   int __glibc_unused1;
+#endif
+
+  shim_tcb_t shim_tcb; /* For graphene, we allocate a shim_tcb
+                          in the real tcb. */
+
   /* Reservation of some values for the TM ABI.  */
   void *__private_tm[4];
   /* GCC split stack support.  */
