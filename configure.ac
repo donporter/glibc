@@ -480,6 +480,45 @@ AC_ARG_ENABLE([cet],
 	      [enable_cet=$enableval],
 	      [enable_cet=no])
 
+
+AC_ARG_ENABLE([libos],
+              AC_HELP_STRING([--enable-libos=ARG],
+                             [enable libos support type, x86-64 only
+                             yes: enable libos support in generic way,
+                             no(default): traditional run-time,
+                             libos name: specific libos support]),
+              [enable_libos=$enableval],
+              [enable_libos=no])
+case "$enable_libos" in
+yes)
+  enable_libos=yes
+  libos_target="generic"
+  ;;
+''|no)
+  enable_libos=no
+  libos_target="native"
+  ;;
+*)
+  enable_libos=yes
+  libos_target="$enable_libos"
+  ;;
+esac
+if test "$enable_libos" = yes; then
+  AC_DEFINE(ENABLE_LIBOS, 1, [enable libos support])
+  AC_DEFINE_UNQUOTED(LIBOS_TARGET, "$libos_target", [libos target])
+  case "$libos_target" in
+  "generic")
+    AC_DEFINE(ENABLE_LIBOS_GENERIC, 1, [enalbe generic libos support])
+    ;;
+  # "your-libos-name")
+  #   AC_DEFINE(ENABLE_LIBOS_YOURLIBOS, 1, [enable your-libos-name support])
+  #   ;;
+  *)
+    AC_DEFINE(ENABLE_LIBOS_UNKNOWN, 1, [enable unknow libos support])
+    ;;
+  esac
+fi
+
 # We keep the original values in `$config_*' and never modify them, so we
 # can write them unchanged into config.make.  Everything else uses
 # $machine, $vendor, and $os, and changes them whenever convenient.
