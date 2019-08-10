@@ -78,5 +78,10 @@ ld {
 
     # Set value of a tunable.
     __tunable_get_val;
+
+    # stub symbols for libos support
+    __libos_register_library;
+    __libos_check_glibc_version;
+    __libos_glibc_option;
   }
 }
