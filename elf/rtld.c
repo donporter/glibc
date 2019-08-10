@@ -46,6 +46,9 @@
 
 #include <assert.h>
 
+#include "libos.h"
+#include "../version.h"
+
 /* Only enables rtld profiling for architectures which provides non generic
    hp-timing support.  The generic support requires either syscall
    (clock_gettime), which will incur in extra overhead on loading time.
@@ -525,6 +528,9 @@ _dl_start (void *arg)
   /* Please note that we don't allow profiling of this object and
      therefore need not test whether we have to allocate the array
      for the relocation results (as done in dl-reloc.c).  */
+
+  /* For Graphene, check if the glibc version is correct. */
+  __libos_check_glibc_version(RELEASE, VERSION, LIBOS_TARGET);
 
   /* Now life is sane; we can call functions and access global data.
      Set up to use the operating system facilities, and find out from
