@@ -61,9 +61,20 @@
 # define RTLD_TIMING_SET(var, value) (var) = (value)
 # define RTLD_TIMING_REF(var)        &(var)
 
+# ifdef ENABLE_LIBOS_GENERIC
+bool __hp_timing_disabled __attribute__((weak))= false;
+#  define HP_TIMING_DISABLED __hp_timing_disabled
+# else
+#  define HP_TIMING_DISABLED false
+# endif
+
 static inline void
 rtld_timer_start (hp_timing_t *var)
 {
+  if (HP_TIMING_DISABLED) {
+    memset(var, 0, sizeof(*var));
+    return;
+  }
   HP_TIMING_NOW (*var);
 }
 
@@ -71,6 +82,8 @@ static inline void
 rtld_timer_stop (hp_timing_t *var, hp_timing_t start)
 {
   hp_timing_t stop;
+  if (HP_TIMING_DISABLED)
+    return;
   HP_TIMING_NOW (stop);
   HP_TIMING_DIFF (*var, start, stop);
 }
@@ -79,6 +92,8 @@ static inline void
 rtld_timer_accum (hp_timing_t *sum, hp_timing_t start)
 {
   hp_timing_t stop;
+  if (HP_TIMING_DISABLED)
+    return;
   rtld_timer_stop (&stop, start);
   HP_TIMING_ACCUM_NT(*sum, stop);
 }
@@ -90,6 +105,7 @@ rtld_timer_accum (hp_timing_t *sum, hp_timing_t start)
 # define rtld_timer_start(var)
 # define rtld_timer_stop(var, start)
 # define rtld_timer_accum(sum, start)
+# define HP_TIMING_DISABLED false
 #endif
 
 /* Avoid PLT use for our local calls at startup.  */
@@ -2754,6 +2770,8 @@ static void
 print_statistics_item (const char *title, hp_timing_t time,
 		       hp_timing_t total)
 {
+  if (HP_TIMING_DISABLED)
+    return;
   char cycles[HP_TIMING_PRINT_SIZE];
   HP_TIMING_PRINT (cycles, sizeof (cycles), time);
 
@@ -2785,7 +2803,7 @@ __attribute ((noinline))
 print_statistics (const hp_timing_t *rtld_total_timep)
 {
 #if HP_TIMING_INLINE
-  {
+  if (!HP_TIMING_DISABLED) {
     char cycles[HP_TIMING_PRINT_SIZE];
     HP_TIMING_PRINT (cycles, sizeof (cycles), *rtld_total_timep);
     _dl_debug_printf ("\nruntime linker statistics:\n"

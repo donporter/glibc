@@ -83,5 +83,6 @@ ld {
     __libos_register_library;
     __libos_check_glibc_version;
     __libos_glibc_option;
+    __hp_timing_disabled;
   }
 }
