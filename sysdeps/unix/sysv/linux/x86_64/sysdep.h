@@ -26,11 +26,38 @@
 /* Defines RTLD_PRIVATE_ERRNO.  */
 #include <dl-sysdep.h>
 
-#ifdef __ASSEMBLER__
-# define SYSCALLDB syscall
+#ifdef ENABLE_LIBOS
+# ifdef __ASSEMBLER__
+.macro SYSCALLDB
+    551:
+    syscall;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop
+    552:
+    .pushsection .syscall_instructions, "a"
+    .balign 8
+    .quad 551b
+    .byte 552b - 551b
+    .popsection
+.endm
+# else
+#  define SYSCALLDB                                             \
+    "551:\n\t"                                                  \
+    "syscall\n\t"                                               \
+    "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop\n\t"           \
+    "552:\n\t"                                                  \
+    ".pushsection .syscall_instructions, \"a\"\n\t"             \
+    ".balign 8\n\t"                                             \
+    ".quad 551b\n\t"                                            \
+    ".byte 552b-551b\n\t"                                       \
+    ".popsection\n\t"
+# endif
 #else
-# define SYSCALLDB "syscall\n\t"
+# ifdef __ASSEMBLER__
+#  define SYSCALLDB syscall
+# else
+#  define SYSCALLDB "syscall\n\t"
+# endif
 #endif
+#define SYSCALLDB_ASM SYSCALLDB
 
 /* For Linux we can use the system call table in the header file
 	/usr/include/asm/unistd.h
