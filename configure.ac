@@ -489,6 +489,12 @@ AC_ARG_ENABLE([libos],
                              libos name: specific libos support]),
               [enable_libos=$enableval],
               [enable_libos=no])
+AC_ARG_ENABLE([libos-num-nops],
+              AC_HELP_STRING([--enable-libos-num-nops=NUM-NOPS],
+                             [specify the number of nops for syscall, x86-64 only
+                             only mealingful when libos support enabled.]),
+              [libos_num_nops=$enableval],
+              [libos_num_nops=''])
 case "$enable_libos" in
 yes)
   enable_libos=yes
@@ -517,6 +523,18 @@ if test "$enable_libos" = yes; then
     AC_DEFINE(ENABLE_LIBOS_UNKNOWN, 1, [enable unknow libos support])
     ;;
   esac
+  if test -n "$libos_num_nops"; then
+     case "$libos_num_nops" in
+     *[!0-9]*)
+       AC_MSG_ERROR([--enable-libos-num-nops requires a number])
+       ;;
+     *)
+       ;;
+     esac
+     AC_DEFINE_UNQUOTED(ENALBE_LIBOS_NUM_NOPS, $libos_num_nops, [libos num nops])
+     libos_nops=$(printf 'nops;%.0s' $(seq $libos_num_nops))
+     AC_DEFINE_UNQUOTED(ENALBE_LIBOS_NOPS, "$libos_nops", [libos nops])
+  fi
 fi
 
 # We keep the original values in `$config_*' and never modify them, so we
