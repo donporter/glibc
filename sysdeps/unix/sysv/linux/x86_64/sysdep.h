@@ -27,10 +27,16 @@
 #include <dl-sysdep.h>
 
 #ifdef ENABLE_LIBOS
+#ifdef ENABLE_LIBOS_NOPS
+# define NOP_REPEAT ENABLE_LIBOS_NOPS
+#else
+# define NOP_REPEAT nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop
+#endif
 # ifdef __ASSEMBLER__
 .macro SYSCALL_INST
     551:
-    syscall;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop
+    syscall
+    NOP_REPEAT
     552:
     .pushsection .syscall_instructions, "a"
     .balign 8
@@ -39,10 +45,13 @@
     .popsection
 .endm
 # else
+#  define XSTR(s) STR(S)
+#  define STR(s)  #s
 #  define SYSCALL_INST						\
     "551:\n\t"							\
     "syscall\n\t"						\
-    "nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop\n\t"		\
+    XSTR(NOP_REPEAT)						\
+    "\n\t"							\
     "552:\n\t"							\
     ".pushsection .syscall_instructions, \"a\"\n\t"		\
     ".balign 8\n\t"						\
